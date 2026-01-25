@@ -148,6 +148,8 @@ TTypeAttr=Word;
 TOIProps=record
                ci,barpos:Integer;
          end;
+PGVResult=^TGVResult;
+TGVResult=(GVRNotFound,GVRWrongType,GVRImplicitCast,GVROk);
 pvardesk = ^vardesk;
 TMyNotifyCommand=(TMNC_EditingDoneEnterKey,TMNC_EditingDoneLostFocus,TMNC_EditingDoneESC,TMNC_EditingProcess,TMNC_RunFastEditor,TMNC_EditingDoneDoNothing);
 TMyNotifyProc=procedure (Sender: TObject;Command:TMyNotifyCommand) of object;
