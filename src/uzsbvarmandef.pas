@@ -554,7 +554,7 @@ begin
 end;
 procedure UserTypeDescriptor.SavePasToMem(var membuf:TZctnrVectorBytes;PInstance:Pointer;const prefix:TInternalScriptString);
 begin
-  if pSuperTypeDeskriptor<>nil then
+  if (pSuperTypeDeskriptor<>nil)and(pSuperTypeDeskriptor<>@self) then
     pSuperTypeDeskriptor^.SavePasToMem(membuf,PInstance,prefix)
   else
     membuf.TXTAddStringEOL(prefix+':='+GetValueAsString(PInstance)+';');
