@@ -203,6 +203,7 @@ UserTypeDescriptor=object
                          function GetFactTypedef:PUserTypeDescriptor;virtual;
                          function GetDescribedTypedef:PUserTypeDescriptor;virtual;
                          function GetSuperOrSelfTypedef:PUserTypeDescriptor;virtual;
+                         function GetParentTypedef:PUserTypeDescriptor;virtual;
                          procedure Format;virtual;
                          procedure RegisterTypeinfo(ti:PTypeInfo);virtual;
                    end;
@@ -546,6 +547,11 @@ begin
   else
     result:=@self;
 end;
+function UserTypeDescriptor.GetParentTypedef:PUserTypeDescriptor;
+begin
+  result:=nil;
+end;
+
 procedure UserTypeDescriptor.Format;
 begin
 end;
