@@ -27,35 +27,21 @@ uses
   gzctnrVectorTypes,Classes,Controls,Graphics,StdCtrls,types,TypInfo,//gzctnrVector,
   uzbLogIntf;
 const
-  {Ttypenothing=-1;
-  Ttypecustom=1;
-  TGDBPointer=2;
-  Trecord=3;
-  Tarray=4;
-  Tenum=6;
-  TBoolean=7;
-  TGDBShortint=8;
-  TByte=9;
-  TGDBSmallint=10;
-  TGDBWord=11;
-  TInteger=12;
-  TGDBLongword=13;
-  TDouble=14;
-  TString=15;
-  TGDBobject=16;}
-  Ignore=#13;
-  BreakChars='=:,'#10; // Старое название Break ломало ключевое слово Break
   dynamicoffset=-1;
   invar='_INVAR_';
-  TA_COMPOUND=1;
-  TA_OBJECT=2;
-  TA_ENUM=4;
-
-  vda_different=1;
-  vda_RO=2;
-  vda_approximately=4;
-  vda_colored1=8;
 type
+  TVarAttr=(vda_different,    //вместо значения отображается строка "Different"
+            vda_RO,           //нельзя отредактировать
+            vda_approximately,//приближенное значение (текстовое не совпадает
+                              //с двоичным)
+            vda_colored1      //альтернативное оформление, чтоб поле бросалось
+                              //в глаза
+            );
+  TVarAttrs=set of TVarAttr;
+  TTypeAttr=(TA_COMPOUND,
+             TA_OBJECT,
+             TA_ENUM);
+  TTypeAttrs=set of TTypeAttr;
   TFieldAttr=(fldaHidden,       //скрыто на постоянной основе
               fldaTmpHidden,    //временно скрыто, например изза какогото особого
                                 //значения
@@ -143,8 +129,6 @@ TFastEditorsRunTimeVector=specialize TMyVector<TFastEditorRunTimeData>;
     ptm:PUserTypeDescriptor;
   end;
 
-TTypeAttr=Word;
-
 TOIProps=record
                ci,barpos:Integer;
          end;
@@ -179,7 +163,7 @@ UserTypeDescriptor=object
                          //function Serialize(PInstance:Pointer;SaveFlag:Word;var membuf:PTZctnrVectorBytes;var  linkbuf:PGDBOpenArrayOfTObjLinkRecord;var sub:integer):integer;virtual;abstract;
                          function SerializePreProcess(const Value:TInternalScriptString;sub:integer):TInternalScriptString;virtual;
                          //function DeSerialize(PInstance:Pointer;SaveFlag:Word;var membuf:TZctnrVectorBytes;linkbuf:PGDBOpenArrayOfTObjLinkRecord):integer;virtual;abstract;
-                         function GetTypeAttributes:TTypeAttr;virtual;
+                         function GetTypeAttributes:TTypeAttrs;virtual;
                          function GetEditableAsString(PInstance:Pointer; const f:TzeUnitsFormat):TInternalScriptString;virtual;
                          function GetValueAsString(pinstance:Pointer):TInternalScriptString;virtual;
                          function GetFormattedValueAsString(PInstance:Pointer; const f:TzeUnitsFormat):TInternalScriptString;virtual;
@@ -267,12 +251,11 @@ TTranslateFunction=function (const Identifier, OriginalValue: String): String;
   end;
   ptypemanagerdef=^typemanagerdef;
 
-  TVariableAttributes=Integer;
   vardesk =record
     name: TInternalScriptString;
     username: TInternalScriptString;
     data: TTypedData;
-    attrib:TVariableAttributes;
+    attrib:TVarAttrs;
     function GetValueAsString:TInternalScriptString;
     procedure SetValueFromString(const AValue:TInternalScriptString);
     procedure SetInstance(DS:PZAbsVector;Offs:PtrUInt);overload;
@@ -284,9 +267,9 @@ TTranslateFunction=function (const Identifier, OriginalValue: String): String;
     function findvardesc(const varname:TInternalScriptString):pvardesk;
       virtual;abstract;
     function createvariable(const varname:TInternalScriptString;
-      var vd:vardesk;attr:TVariableAttributes=0):pvardesk;virtual;abstract;
+      var vd:vardesk;attr:TVarAttrs=[]):pvardesk;virtual;abstract;
     function createvariable2(const varname:TInternalScriptString;
-      var vd:vardesk;attr:TVariableAttributes=0):TInVectorAddr;virtual;abstract;
+      var vd:vardesk;attr:TVarAttrs=[]):TInVectorAddr;virtual;abstract;
     procedure createvariablebytype(
       const varname,vartype:TInternalScriptString);virtual;abstract;
     procedure createbasevaluefromString(
@@ -302,7 +285,7 @@ procedure clearRTd(rtv:TFastEditorsRunTimeVector);
 procedure clearRTstate(rtv:TFastEditorsRunTimeVector);
 var
   date:TDateTime;
-procedure ProcessVariableAttributes(var attr:TVariableAttributes; const setattrib,resetattrib:TVariableAttributes);
+procedure ProcessVariableAttributes(var attr:TVarAttrs; const setattrib,resetattrib:TVarAttrs);
 implementation
 
 function vardesk.GetValueAsString:TInternalScriptString;
@@ -390,9 +373,9 @@ begin
      rt:=nil;
    end;
 end;
-procedure ProcessVariableAttributes(var attr:TVariableAttributes; const setattrib,resetattrib:TVariableAttributes);
+procedure ProcessVariableAttributes(var attr:TVarAttrs; const setattrib,resetattrib:TVarAttrs);
 begin
-     attr:=(attr or setattrib)and(not resetattrib);
+     attr:=attr+setattrib-resetattrib;
 end;
 
 constructor TPropEditor.Create(AOwner:TComponent;_PInstance:Pointer;var _PTD:UserTypeDescriptor;FreeOnLostFocus:boolean;_f:TzeUnitsFormat);
@@ -663,9 +646,9 @@ begin
                                            result.mode:=TEM_Nothing;
                                          end;
 end;
-function UserTypeDescriptor.GetTypeAttributes:TTypeAttr;
+function UserTypeDescriptor.GetTypeAttributes:TTypeAttrs;
 begin
-     result:=0;
+     result:=[];
 end;
 function UserTypeDescriptor.GetValueAsString(pinstance:Pointer):TInternalScriptString;
 begin
