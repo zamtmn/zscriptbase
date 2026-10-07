@@ -27,38 +27,25 @@ uses
   gzctnrVectorTypes,gzctnrVectorP;
 
 const
-  m_procedure=1;
-  m_function=2;
-  m_constructor=4;
-  m_destructor=8;
-  m_virtual=16;
   field_no_attrib=nil;
-
   property_correct=1;
   property_build=0;
 
 type
-  PPropertyDeskriptor=^PropertyDeskriptor;
-
   PropertyDeskriptor=object(BasePropertyDeskriptor)
     constructor initnul;
     destructor done;virtual;
     function IsVisible(AShowEmptySections:boolean):boolean;
   end;
-  PTPropertyDeskriptorArray=^TPropertyDeskriptorArray;
+  PPropertyDeskriptor=^PropertyDeskriptor;
 
   TPropertyDeskriptorArray=object(GZVectorP<PPropertyDeskriptor>)
     procedure cleareraseobj;virtual;
     function GetRealPropertyDeskriptorsCount:integer;virtual;
-    function findcategory(
-      const category:TInternalScriptString):PPropertyDeskriptor;
+    function findcategory(const category:TInternalScriptString):PPropertyDeskriptor;
     function findvalkey(valkey:string):integer;
   end;
-  SimpleProcOfObj=procedure of object;
-  SimpleProcOfObjDouble=procedure(arg:double) of object;
-  SimpleFuncOfObjDouble=function :double of object;
-  PFieldDescriptor=^FieldDescriptor;
-  pBaseDescriptor=^BaseDescriptor;
+  PTPropertyDeskriptorArray=^TPropertyDeskriptorArray;
 
   BaseDescriptor=record
     ProgramName:string;
@@ -78,38 +65,25 @@ type
     Saved:word;//todo убрать нахер
     constructor create(APN,AUN:string;ATD:PUserTypeDescriptor;AAttrs:TFieldAttrs);
   end;
+  PBaseDescriptor=^BaseDescriptor;
 
   FieldDescriptor=record
     base:BaseDescriptor;
     Offset,Size:integer;
     Collapsed:boolean;
   end;
-  PPropertyDescriptor=^PropertyDescriptor;
-
-  PropertyDescriptor=record
-    base:BaseDescriptor;
-    //PropertyName:String;
-    //UserName:String;
-    r,w:string;
-    //PFT:PUserTypeDescriptor;
-    //Attributes:Word;
-    Collapsed:boolean;
-  end;
-  PTUserTypeDescriptor=^TUserTypeDescriptor;
+  PFieldDescriptor=^FieldDescriptor;
 
   TUserTypeDescriptor=object(UserTypeDescriptor)
-    function CreateProperties(
-      const f:TzeUnitsFormat;mode:PDMode;PPDA:PTPropertyDeskriptorArray;
+    function CreateProperties(const f:TzeUnitsFormat;mode:PDMode;PPDA:PTPropertyDeskriptorArray;
       const Name:TInternalScriptString;PCollapsed:Pointer;ownerattrib:TFieldAttrs;
-      var bmode:integer;const addr:Pointer;
-      const ValKey,ValType:TInternalScriptString):PTPropertyDeskriptorArray;virtual;abstract;
-    //procedure IncAddr(var addr:Pointer);virtual;
+      var bmode:integer;const addr:Pointer;const ValKey,ValType:TInternalScriptString):
+      PTPropertyDeskriptorArray;virtual;abstract;
     function CreatePD:Pointer;
-    function GetPPD(PPDA:PTPropertyDeskriptorArray;
-      var bmode:integer):PPropertyDeskriptor;
-    function FindField(
-      const fn:TInternalScriptString):PFieldDescriptor;virtual;
+    function GetPPD(PPDA:PTPropertyDeskriptorArray;var bmode:integer):PPropertyDeskriptor;
+    function FindField(const fn:TInternalScriptString):PFieldDescriptor;virtual;
   end;
+  PTUserTypeDescriptor=^TUserTypeDescriptor;
 
 var
   debugShowHiddenFieldInObjInsp:boolean=False;
@@ -163,14 +137,11 @@ begin
   Pointer(ValKey):=nil;
   Pointer(ValType):=nil;
   Pointer(category):=nil;
-  Pointer(r):=nil;
-  Pointer(w):=nil;
   PTypeManager:=nil;
   Attr:=[];
   Collapsed:=nil;
   ValueOffsetInMem:=0;
   valueAddres:=nil;
-  HelpPointer:=nil;
   Mode:=PDM_Field;
   _ppda:=nil;
   _bmode:=-1000;
@@ -183,8 +154,6 @@ begin
   ValKey:='';
   ValType:='';
   category:='';
-  r:='';
-  w:='';
   if mode=PDM_Property then
     if valueAddres<>nil then begin
       PTypeManager.MagicFreeInstance(valueAddres);
